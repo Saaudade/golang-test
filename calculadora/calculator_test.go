@@ -13,29 +13,36 @@ func TestDiscountCalculator(t *testing.T) {
 
 	testCases := []testCase{
 		{
-			name:                  "Should apply 20",
+			name:                  "should apply 20",
 			minimumPurchaseAmount: 100,
 			discount:              20,
 			purchaseAmount:        150,
 			expectedAmount:        130,
 		},
 		{
-			name:                  "Should apply 40",
+			name:                  "should apply 40",
 			minimumPurchaseAmount: 100,
 			discount:              20,
 			purchaseAmount:        200,
 			expectedAmount:        160,
 		},
 		{
-			name:                  "Should apply 60",
+			name:                  "should apply 60",
 			minimumPurchaseAmount: 100,
 			discount:              20,
 			purchaseAmount:        350,
 			expectedAmount:        290,
 		},
 		{
-			name:                  "Should not apply",
+			name:                  "should not apply",
 			minimumPurchaseAmount: 100,
+			discount:              20,
+			purchaseAmount:        50,
+			expectedAmount:        50,
+		},
+		{
+			name:                  "zero minimum purchase amount",
+			minimumPurchaseAmount: 0,
 			discount:              20,
 			purchaseAmount:        10,
 			expectedAmount:        50,
@@ -44,12 +51,23 @@ func TestDiscountCalculator(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			calculator := NewDiscountCalculator(tc.minimumPurchaseAmount, tc.discount)
+			calculator, err := NewDiscountCalculator(tc.minimumPurchaseAmount, tc.discount)
+			if err != nil {
+				t.Fatalf("could not instantiate the calculator %s", err.Error()) // FailNow+log
+			}
 			amount := calculator.Calculate(tc.purchaseAmount)
 
 			if amount != tc.expectedAmount {
 				t.Errorf("Expected %v, got %v", tc.expectedAmount, amount) // Error = Log + Fail
 			}
 		})
+	}
+}
+
+func TestDiscountCalculatorShouldFailWithZeroMinimumAmount(t *testing.T) {
+
+	_, err := NewDiscountCalculator(0, 20)
+	if err == nil {
+		t.Fatalf("should not create the calculator with zero purchase amount %s", err.Error()) // FailNow+log
 	}
 }
