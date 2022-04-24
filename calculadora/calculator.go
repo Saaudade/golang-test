@@ -2,14 +2,16 @@ package calculator
 
 import (
 	"errors"
+
+	"github.com/Saaudade/course-test-udemy/database"
 )
 
 type DiscountCalculator struct {
 	minimumPurchaseAmount int
-	discountAmount        int
+	discountRepository    database.Repository
 }
 
-func NewDiscountCalculator(minimumPurchaseAmount int, discountAmount int) (*DiscountCalculator, error) {
+func NewDiscountCalculator(minimumPurchaseAmount int, discountRepository database.Repository) (*DiscountCalculator, error) {
 
 	if minimumPurchaseAmount == 0 {
 		return &DiscountCalculator{}, errors.New("minimum purchase amount could not be zero")
@@ -17,14 +19,15 @@ func NewDiscountCalculator(minimumPurchaseAmount int, discountAmount int) (*Disc
 
 	return &DiscountCalculator{
 		minimumPurchaseAmount: minimumPurchaseAmount,
-		discountAmount:        discountAmount,
+		discountRepository:    discountRepository,
 	}, nil
 }
 
 func (c *DiscountCalculator) Calculate(purchaseAmount int) int {
 	if purchaseAmount > c.minimumPurchaseAmount {
 		multiplier := purchaseAmount / c.minimumPurchaseAmount
-		return purchaseAmount - (c.discountAmount * multiplier)
+		discount := c.discountRepository.FindCurrentDiscount()
+		return purchaseAmount - (discount * multiplier)
 	}
 
 	return purchaseAmount

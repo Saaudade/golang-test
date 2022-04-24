@@ -1,6 +1,14 @@
 package calculator
 
-import "testing"
+import (
+	"testing"
+)
+
+type DiscountRepositoryMock struct{}
+
+func (drm DiscountRepositoryMock) FindCurrentDiscount() int {
+	return 20
+}
 
 func TestDiscountCalculator(t *testing.T) {
 	type testCase struct {
@@ -22,28 +30,24 @@ func TestDiscountCalculator(t *testing.T) {
 		{
 			name:                  "should apply 40",
 			minimumPurchaseAmount: 100,
-			discount:              20,
 			purchaseAmount:        200,
 			expectedAmount:        160,
 		},
 		{
 			name:                  "should apply 60",
 			minimumPurchaseAmount: 100,
-			discount:              20,
 			purchaseAmount:        350,
 			expectedAmount:        290,
 		},
 		{
 			name:                  "should not apply",
 			minimumPurchaseAmount: 100,
-			discount:              20,
 			purchaseAmount:        50,
 			expectedAmount:        50,
 		},
 		{
 			name:                  "zero minimum purchase amount",
 			minimumPurchaseAmount: 0,
-			discount:              20,
 			purchaseAmount:        10,
 			expectedAmount:        50,
 		},
@@ -51,10 +55,15 @@ func TestDiscountCalculator(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			calculator, err := NewDiscountCalculator(tc.minimumPurchaseAmount, tc.discount)
+
+			discountRepositoryMock := DiscountRepositoryMock{}
+
+			calculator, err := NewDiscountCalculator(tc.minimumPurchaseAmount, discountRepositoryMock)
+
 			if err != nil {
 				t.Fatalf("could not instantiate the calculator %s", err.Error()) // FailNow+log
 			}
+
 			amount := calculator.Calculate(tc.purchaseAmount)
 
 			if amount != tc.expectedAmount {
@@ -65,8 +74,9 @@ func TestDiscountCalculator(t *testing.T) {
 }
 
 func TestDiscountCalculatorShouldFailWithZeroMinimumAmount(t *testing.T) {
+	discountRepositoryMock := DiscountRepositoryMock{}
 
-	_, err := NewDiscountCalculator(0, 20)
+	_, err := NewDiscountCalculator(0, discountRepositoryMock)
 	if err == nil {
 		t.Fatalf("should not create the calculator with zero purchase amount %s", err.Error()) // FailNow+log
 	}
